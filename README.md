@@ -10,50 +10,58 @@ See [action.yml](./action.yml) for the current outputs
 - `branch` The source branch extracted from the build id, if any
 - `commit` The commit SHA extracted from the build id, if any
 
-You can access the above outputs using `${{ steps.<step name>.outputs.<output name> }}` expression syntax, see the [pr-edit.yml](./.github/workflows/pr-edit.yml) workflow.
+You can access the above outputs using `${{ steps.<step name>.outputs.<output name> }}` expression syntax, see the [ci.yml](./.github/workflows/ci.yml) workflow.
 
 ## Use
 
-Create a [GitHub Actions](https://glebbahmutov.com/blog/trying-github-actions/) workflow that runs on pull request edits.
+In your `next.config.js` return the build ID formed from the `branch:::commit SHA` strings, for example like [this](https://github.com/bahmutov/next-ts-app/blob/main/next.config.js)
 
-```yml
-# .github/workflows/pr.yml
-name: pr
-on:
-  pull_request:
-    types:
-      - edited
-jobs:
-  trigger-tests:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
+```js
+// next.config.js
+// https://github.com/cypress-io/commit-info
+const { getBranch, getSha } = require('@cypress/commit-info')
 
-      - name: Check the PR
-        # https://github.com/bahmutov/should-run-github-action
-        uses: bahmutov/should-run-github-action@v1
-        id: check-pr
-        env:
-          GITHUB_EVENT: ${{ toJson(github.event) }}
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  generateBuildId: async () => {
+    // make sure to use Vercel variables if available
+    // https://vercel.com/docs/concepts/projects/environment-variables
+    const branch =
+      process.env.VERCEL_GIT_COMMIT_REF ||
+      (await getBranch()) ||
+      'unknown branch'
+    const sha =
+      process.env.VERCEL_GIT_COMMIT_SHA || (await getSha()) || 'unknown sha'
+    const buildId = `${branch}:::${sha}`
+    console.log('generated build id "%s"', buildId)
+    return buildId
+  },
+}
 
-      - name: Run tests if the user clicked the checkbox
-        if: ${{ steps.check-pr.outputs.shouldRun }}
-        run: echo "Running tests..."
+module.exports = nextConfig
 ```
 
-In your GitHub pull request template, use a checkbox
+The build ID embedded in the application will usually be something like "main:::<sha>". This build ID is embedded in every HTML page, and you can get to it using this action. In your workflow use:
 
 ```yml
-# .github/PULL_REQUEST_TEMPLATE.md
+- name: Get the build info 🖨
+  uses: bahmutov/get-build-id@v1
+  id: get-build-id
+  with:
+    # USE YOUR DEPLOYED URL
+    url: 'https://next-ts-app-swart.vercel.app/'
 
-To re-run the tests, pick the tags above then click the checkbox below
-
-- [ ] re-run the tests
+- name: Print the build outputs 🖨
+  run: |
+    echo "Next.js build ID: ${{ steps.get-build-id.outputs.buildId }}"
+    echo "Next.js build branch: ${{ steps.get-build-id.outputs.branch }}"
+    echo "Next.js build commit: ${{ steps.get-build-id.outputs.commit }}"
 ```
-
-When the user clicks on the checkbox and changes its state from empty to filled, the action sets its output to `true` to trigger the other workflow steps.
 
 ## Examples
+
+- [bahmutov/next-ts-app-tests](https://github.com/bahmutov/next-ts-app-tests) as described in the blog post [Code Coverage For Nextjs Application](https://glebbahmutov.com/blog/code-coverage-for-nextjs-app/)
 
 ## Small print
 
