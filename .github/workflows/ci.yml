@@ -13,3 +13,5 @@ jobs:
       - name: Print the outputs 🖨
         run: |
           echo "Next.js build ID: ${{ steps.get-build-id.outputs.buildId }}"
+          echo "Next.js build branch: ${{ steps.get-build-id.outputs.branch }}"
+          echo "Next.js build commit: ${{ steps.get-build-id.outputs.commit }}"
