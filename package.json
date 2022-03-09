@@ -32,7 +32,8 @@
     "semantic-release": "^18.0.1"
   },
   "dependencies": {
-    "@actions/core": "^1.6.0"
+    "@actions/core": "^1.6.0",
+    "got": "^11.8.3"
   },
   "release": {
     "npmPublish": false,

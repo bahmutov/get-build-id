@@ -1,41 +1,51 @@
 // @ts-check
+const got = require('got')
 const core = require('@actions/core')
 
-if (!process.env.GITHUB_EVENT) {
-  console.log('GITHUB_EVENT is not defined')
-  process.exit(0)
-}
-const ghEvent = JSON.parse(process.env.GITHUB_EVENT)
+async function getBuildId(url) {
+  // @ts-ignore
+  const response = await got(url)
+  const html = response.body
+  // console.log('response')
+  // console.log(html)
+  const regex = /"buildId":"(?<buildId>[A-Za-z0-9\-.:]+)"/
+  const match = regex.exec(html)
+  // console.log(match)
 
-let branch
-if (ghEvent.pull_request) {
-  branch = ghEvent.pull_request.head.ref
-  core.setOutput('branch', branch)
-} else {
-  branch = ghEvent.ref.replace('refs/heads/', '')
-  core.setOutput('branch', branch)
+  const info = {}
+  if (match && match.groups.buildId) {
+    info.buildId = match.groups.buildId
+    const separator = ':::'
+    if (info.buildId.includes(separator)) {
+      const [branch, commit] = info.buildId.split(separator)
+      if (branch) {
+        info.branch = branch
+      }
+      if (commit) {
+        info.commit = commit
+      }
+    }
+  }
+
+  return info
 }
 
-if (ghEvent.action !== 'edited') {
-  process.exit(0)
+const url = core.getInput('url')
+if (!url) {
+  throw new Error('url is required')
 }
-
-// TODO check if this was really an edit of the PR body
-const commit = ghEvent.pull_request.head.sha
-
-const runTestsCheckboxUnfilled = '[ ] re-run the tests'
-const runTestsCheckboxFilled = '[x] re-run the tests'
-if (
-  ghEvent.changes.body.from.includes(runTestsCheckboxUnfilled) &&
-  ghEvent.pull_request.body.includes(runTestsCheckboxFilled)
-) {
-  console.log(
-    'Should run GH action on branch "%s" and commit %s',
-    branch,
-    commit,
-  )
-  core.setOutput('shouldRun', true)
-  core.setOutput('commit', commit)
-} else {
-  console.log('Should not run GH action')
-}
+getBuildId(url).then((info) => {
+  if (!info) {
+    console.warn('Could not find build Id from URL %s', url)
+    return
+  }
+  if (info.buildId) {
+    core.setOutput('buildId', info.buildId)
+  }
+  if (info.branch) {
+    core.setOutput('branch', info.branch)
+  }
+  if (info.commit) {
+    core.setOutput('commit', info.commit)
+  }
+})
