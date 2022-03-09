@@ -1,4 +1,4 @@
-# get-build-id
+# get-build-id [![ci](https://github.com/bahmutov/get-build-id/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bahmutov/get-build-id/actions/workflows/ci.yml) [![release](https://github.com/bahmutov/get-build-id/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/bahmutov/get-build-id/actions/workflows/release.yml)
 
 > GitHub action to fetch the build ID from Next.js deployment
 
