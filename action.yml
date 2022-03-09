@@ -2,6 +2,10 @@
 name: 'Get Next.js Build Id'
 description: 'GitHub action to fetch the build ID from Next.js deployment'
 author: 'Gleb Bahmutov'
+inputs:
+  url:
+    description: 'Next.js deployment URL'
+    required: true
 outputs:
   buildId:
     description: 'The string build id'
