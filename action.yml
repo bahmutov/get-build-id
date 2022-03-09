@@ -1,0 +1,17 @@
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/metadata-syntax-for-github-actions
+name: 'Get Next.js Build Id'
+description: 'GitHub action to fetch the build ID from Next.js deployment'
+author: 'Gleb Bahmutov'
+outputs:
+  buildId:
+    description: 'The string build id'
+  branch:
+    description: 'The source branch extracted from the build id, if any'
+  commit:
+    description: 'The commit SHA extracted from the build id, if any'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+branding:
+  color: 'yellow'
+  icon: 'check-square'

@@ -1,0 +1,44 @@
+name: ci
+on:
+  push:
+    branches:
+      - 'main'
+jobs:
+  build-release:
+    runs-on: ubuntu-20.04
+    name: release
+    # only release from the main branch
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: bahmutov/npm-install@v1
+
+      - name: Print the GitHub event 🖨
+        run: echo "$GITHUB_EVENT"
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+
+      - run: npm run build
+
+      # https://github.com/cycjimmy/semantic-release-action
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v2
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push updates to branch for major version
+        # if there is a new version published, let's say v1.2.3
+        # then this step will update branch "v1" to this commit
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: 'git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:refs/heads/v${{steps.semantic.outputs.new_release_major_version}}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit any changed files 💾
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Updated build files
+          branch: main
+          file_pattern: dist/index.js

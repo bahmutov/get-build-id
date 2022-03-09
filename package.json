@@ -1,0 +1,43 @@
+{
+  "name": "get-build-id",
+  "version": "1.0.0",
+  "description": "GitHub action to fetch the build ID from Next.js deployment",
+  "main": "dist/index.js",
+  "files": [
+    "src",
+    "dist",
+    "action.yml"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build -o dist src/index.js",
+    "format": "prettier --write src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bahmutov/get-build-id.git"
+  },
+  "keywords": [
+    "github-action"
+  ],
+  "author": "Gleb Bahmutov <gleb.bahmutov@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bahmutov/get-build-id/issues"
+  },
+  "homepage": "https://github.com/bahmutov/get-build-id#readme",
+  "devDependencies": {
+    "@vercel/ncc": "^0.33.1",
+    "prettier": "^2.5.1",
+    "semantic-release": "^18.0.1"
+  },
+  "dependencies": {
+    "@actions/core": "^1.6.0"
+  },
+  "release": {
+    "npmPublish": false,
+    "branches": [
+      "main"
+    ]
+  }
+}
